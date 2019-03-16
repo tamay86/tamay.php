@@ -25,6 +25,13 @@
     name: "{{ php_version }}-php-{{ item }}"
   loop: "{{ php_modules }}"
 
+- name: "Create symlink from /opt/remi/{{ php_version }}/root/usr/bin/php to {{ php_symlink }}"
+  file:
+    state: link
+    src: /opt/remi/{{ php_version }}/root/usr/bin/php
+    dest: "{{ php_symlink_path }}"
+  when: php_symlink
+
 - name: "Configure php.ini"
   template:
     src: 50-custom.ini.j2

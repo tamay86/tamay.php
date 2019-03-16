@@ -27,6 +27,12 @@ PHP version that should be installed. Possible values are for example *php56*, *
     #  - pdo
 
 List of php modules that should be installed. Use values from ```yum search {{ php_version }}-php-``` without *{{ php_version }}-php-*.
+
+    # Creates symlink
+    php_symlink: yes
+    php_symlink_path: /usr/bin/php
+    
+Creates a symlink to the installed php binary, so that php can be executed with ```php``` instead of ```php71```.
     
     # Additional php.ini configuration
     php_ini_config: {}

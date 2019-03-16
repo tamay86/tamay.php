@@ -12,6 +12,10 @@ php_modules: []
 #  - intl
 #  - pdo
 
+# Creates symlink
+php_symlink: yes
+php_symlink_path: /usr/bin/php
+
 # Additional php.ini configuration
 php_ini_config: {}
 # Example:
