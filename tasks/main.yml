@@ -1,0 +1,119 @@
+---
+# tasks file for tamay.php
+
+- name: "Enable remi repository"
+  package:
+    state: present
+    name: https://rpms.remirepo.net/enterprise/remi-release-{{ ansible_distribution_major_version }}.rpm
+
+- name: "Install RPM-GPG-KEY-remi"
+  rpm_key:
+    state: present
+    key: https://rpms.remirepo.net/RPM-GPG-KEY-remi
+
+- name: "Install php packages"
+  package:
+    state: present
+    name:
+      - "{{ php_version }}"
+      - "{{ php_version }}-php"
+      - "{{ php_version }}-php-opcache"
+
+- name: "Install php modules"
+  package:
+    state: present
+    name: "{{ php_version }}-php-{{ item }}"
+  loop: "{{ php_modules }}"
+
+- name: "Configure php.ini"
+  template:
+    src: 50-custom.ini.j2
+    dest: /etc/opt/remi/{{ php_version }}/php.d/50-custom.ini
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Configure opcache"
+  replace:
+    path: /etc/opt/remi/{{ php_version }}/php.d/10-opcache.ini
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - regexp: '.?opcache\.enable=\d'
+      replace: 'opcache.enable={{ php_opcache_config.enable }}'
+    - regexp: '.?opcache\.enable_cli=\d'
+      replace: 'opcache.enable_cli={{ php_opcache_config.enable_cli }}'
+    - regexp: '.?opcache\.memory_consumption=\d+'
+      replace: 'opcache.memory_consumption={{ php_opcache_config.memory_consumption }}'
+    - regexp: '.?opcache\.interned_strings_buffer=\d+'
+      replace: 'opcache.interned_strings_buffer={{ php_opcache_config.interned_strings_buffer }}'
+    - regexp: '.?opcache\.max_accelerated_files=\d+'
+      replace: 'opcache.max_accelerated_files={{ php_opcache_config.max_accelerated_files }}'
+    - regexp: '.?opcache\.save_comments=\d'
+      replace: 'opcache.save_comments={{ php_opcache_config.save_comments }}'
+    - regexp: '.?opcache\.revalidate_freq=\d'
+      replace: 'opcache.revalidate_freq={{ php_opcache_config.revalidate_freq }}'
+    - regexp: '.?opcache\.fast_shutdown=\d'
+      replace: 'opcache.fast_shutdown={{ php_opcache_config.fast_shutdown }}'
+
+- name: "Install php-fpm"
+  package:
+    state: present
+    name: "{{ php_version }}-php-fpm"
+  when: php_fpm
+
+- name: "Configure tmpfiles.d for /run/php-fpm"
+  copy:
+    dest: /etc/tmpfiles.d/php-fpm.conf
+    content: 'd /run/php-fpm 755 root root'
+    owner: root
+    group: root
+    mode: 0644
+  when: php_fpm
+
+- name: "Create /run/php-fpm directory"
+  file:
+    path: /run/php-fpm
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when: php_fpm
+
+- name: "Change default pool to use unix socket"
+  replace:
+    path: /etc/opt/remi/{{ php_version }}/php-fpm.d/www.conf
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - regexp: 'listen = 127.0.0.1:9000'
+      replace: 'listen = /run/php-fpm/www-{{ php_version }}.sock'
+    - regexp: ';listen.owner = nobody'
+      replace: 'listen.owner = apache'
+    - regexp: ';listen.group = nobody'
+      replace: 'listen.group = apache'
+  when: php_fpm
+
+- name: "Create additional php-fpm pools"
+  template:
+    src: pool.conf.j2
+    dest: /etc/opt/remi/{{ php_version }}/php-fpm.d/{{ item.name }}.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: "restart_php_fpm"
+  loop: "{{ php_fpm_pools }}"
+  when: php_fpm
+
+- name: "Ensure pool user exists"
+  user:
+    state: present
+    name: "{{ item.name }}"
+  loop: "{{ php_fpm_pools }}"
+  when: php_fpm

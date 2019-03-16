@@ -1,0 +1,15 @@
+; {{ ansible_managed }}
+[{{ item.name }}]
+
+user = $pool
+group = $pool
+
+listen = /run/php-fpm/$pool-{{ php_version }}.sock
+listen.owner = $pool
+listen.group = $pool
+listen.mode = 0660
+
+
+{% for (key,value) in item.config.items() | list %}
+{{ key }} = {{ value }}
+{% endfor %}

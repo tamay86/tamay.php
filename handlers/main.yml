@@ -1,0 +1,8 @@
+---
+# handlers file for tamay.php
+
+- name: restart_php_fpm
+  service:
+    name: "{{ php_version }}-php-fpm"
+    state: restarted
+    enabled: yes
