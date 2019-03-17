@@ -11,19 +11,20 @@
     state: present
     key: https://rpms.remirepo.net/RPM-GPG-KEY-remi
 
+- name: "Add php modules to list"
+  set_fact:
+    php_packages: "{{ php_packages }} + ['{{ php_version }}-php-{{ item }}']"
+  loop: "{{ php_modules }}"
+
+- name: "Add php-fpm to list"
+  set_fact:
+    php_packages: "{{ php_packages }} + ['{{ php_version }}-php-fpm']"
+  when: php_fpm
+
 - name: "Install php packages"
   package:
     state: present
-    name:
-      - "{{ php_version }}"
-      - "{{ php_version }}-php"
-      - "{{ php_version }}-php-opcache"
-
-- name: "Install php modules"
-  package:
-    state: present
-    name: "{{ php_version }}-php-{{ item }}"
-  loop: "{{ php_modules }}"
+    name: "{{ php_packages }}"
 
 - name: "Create symlink from /opt/remi/{{ php_version }}/root/usr/bin/php to {{ php_symlink }}"
   file:
@@ -65,12 +66,6 @@
       replace: 'opcache.revalidate_freq={{ php_opcache_config.revalidate_freq }}'
     - regexp: '.?opcache\.fast_shutdown=\d'
       replace: 'opcache.fast_shutdown={{ php_opcache_config.fast_shutdown }}'
-
-- name: "Install php-fpm"
-  package:
-    state: present
-    name: "{{ php_version }}-php-fpm"
-  when: php_fpm
 
 - name: "Configure tmpfiles.d for /run/php-fpm"
   copy:

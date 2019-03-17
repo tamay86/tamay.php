@@ -1,2 +1,7 @@
 ---
 # vars file for tamay.php
+
+php_packages:
+  - "{{ php_version }}"
+  - "{{ php_version }}-php"
+  - "{{ php_version }}-php-opcache"
