@@ -74,7 +74,19 @@ Defaults to yes. Installs PHP-FPM, and sets the default pool to use UNIX instead
     #      pm.max_spare_servers: 35
     #      php_admin_value[memory_limit]: 64M
 
-Creates multiple pools. A user with the name of the pool will also be created. *Config* contains a dictionary of key-value pairs to further configure the pool.
+Creates multiple pools. A user with the name of the pool will also be created. *Config* contains a dictionary of key-value pairs to further configure the pool.  
+
+**Important:**  
+*pm* values have to be set, otherwise php-fpm does not start. Example of a minimal pool definition:
+
+    php_fpm_pools:
+      - name: webapp
+        config:
+          pm: dynamic
+          pm.max_children: 50
+          pm.start_servers: 5
+          pm.min_spare_servers: 5
+          pm.max_spare_servers: 35
 
 Dependencies
 ------------
