@@ -1,13 +1,18 @@
 ; {{ ansible_managed }}
 [{{ item.name }}]
 
-user = $pool
-group = $pool
+user = {{ item.user | default('$pool') }}
+group = {{ item.group | default('$pool') }}
 
-listen = /run/php-fpm/$pool-{{ php_version }}.sock
-listen.owner = $pool
-listen.group = $pool
-listen.mode = 0660
+listen = {{ item.listen | default('/run/php-fpm/$pool-{{ php_version }}.sock') }}
+listen.owner = {{ item.listen_owner | default('$pool') }}
+listen.group = {{ item.listen_group | default('apache') }}
+
+pm = {{ item.pm | default('dynamic') }}
+pm.max_children = {{ item.pm_max_children | default('50') }}
+pm.start_servers = {{ item.pm_start_servers | default('5') }}
+pm.min_spare_servers = {{ item.pm_min_spare_servers | default('5') }}
+pm.max_spare_servers = {{ item.pm_max_spare_servers | default('35') }}
 
 {% if item.config is defined %}
 {% for (key,value) in item.config.items() | list %}

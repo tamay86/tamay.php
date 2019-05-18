@@ -66,27 +66,27 @@ Defaults to yes. Installs PHP-FPM, and sets the default pool to use UNIX instead
     # Example
     #php_fpm_pools:
     #  - name: test
+    #    user: $pool
+    #    group: $pool
+    #    listen: /run/php-fpm/$pool-{{ php_version }}.sock
+    #    listen_owner: $pool
+    #    listen_group: apache
+    #    pm: dynamic
+    #    pm_max_children: 50
+    #    pm_start_servers: 5
+    #    pm_min_spare_servers: 5
+    #    pm_max_spare_servers: 35
     #    config:
-    #      pm: dynamic
-    #      pm.max_children: 50
-    #      pm.start_servers: 5
-    #      pm.min_spare_servers: 5
-    #      pm.max_spare_servers: 35
     #      php_admin_value[memory_limit]: 64M
+    #      env[HOSTNAME]: $HOSTNAME
+    #      env[PATH]: /usr/local/bin:/usr/bin:/bin
+    #      env[TMP]: /tmp
+    #      env[TMPDIR]: /tmp
+    #      env[TEMP]: /tmp
 
-Creates multiple pools. A user with the name of the pool will also be created. *Config* contains a dictionary of key-value pairs to further configure the pool.  
+Creates multiple pools. A user with the name of the pool will also be created. *Config* contains a dictionary of key-value pairs to further configure the pool. The only mandatory option is ```name```. Everything else will be filled with default values as seen above (except *config*).
 
-**Important:**  
-*pm* values have to be set, otherwise php-fpm does not start. Example of a minimal pool definition:
 
-    php_fpm_pools:
-      - name: webapp
-        config:
-          pm: dynamic
-          pm.max_children: 50
-          pm.start_servers: 5
-          pm.min_spare_servers: 5
-          pm.max_spare_servers: 35
 
 Dependencies
 ------------
