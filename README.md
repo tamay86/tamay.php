@@ -63,20 +63,17 @@ Defaults to yes. Installs PHP-FPM, and sets the default pool to use UNIX instead
     
     # php-fpm pools to create
     php_fpm_pools: []
-    # Example
+    # Example:
     #php_fpm_pools:
     #  - name: test
-    #    user: $pool
-    #    group: $pool
-    #    listen: /run/php-fpm/$pool-{{ php_version }}.sock
-    #    listen_owner: $pool
-    #    listen_group: apache
-    #    pm: dynamic
-    #    pm_max_children: 50
-    #    pm_start_servers: 5
-    #    pm_min_spare_servers: 5
-    #    pm_max_spare_servers: 35
+    #    user_home: /var/www/vhosts/test
+    #    user_groups:
+    #      - apache
     #    config:
+    #      pm_max_children: 30
+    #      pm_start_servers: 3
+    #      pm_min_spare_servers: 3
+    #      pm_max_spare_servers: 10
     #      php_admin_value[memory_limit]: 64M
     #      env[HOSTNAME]: $HOSTNAME
     #      env[PATH]: /usr/local/bin:/usr/bin:/bin
@@ -84,7 +81,13 @@ Defaults to yes. Installs PHP-FPM, and sets the default pool to use UNIX instead
     #      env[TMPDIR]: /tmp
     #      env[TEMP]: /tmp
 
-Creates multiple pools. A user with the name of the pool will also be created. *Config* contains a dictionary of key-value pairs to further configure the pool. The only mandatory option is ```name```. Everything else will be filled with default values as seen above (except *config*).
+```php_fpm_pools``` is a list of pools to be created. The only mandatory option is the name of the pool.
+
+**User creation**:  
+```user_home``` and ```user_groups``` can be defined. Defaults to ```/var/www/vhosts/NAME_OF_POOL``` and ```apache```
+
+**Pool configuration**:  
+The pool will be created, and the file ```/etc/opt/remi/php71/php-fpm.d/pool.default``` will be included. It contains some default values, that the pool can be used immediately. To overwrite or add some values, the have to be specified under ```config```.
 
 
 
@@ -127,13 +130,19 @@ Example Playbook
         php_fpm: yes
         php_fpm_pools:
           - name: test
+            user_home: /var/www/vhosts/test
+            user_groups:
+              - apache
             config:
               pm: dynamic
-              pm.max_children: 50
-              pm.start_servers: 5
-              pm.min_spare_servers: 5
-              pm.max_spare_servers: 35
+              pm.max_children: 25
+              pm.start_servers: 3
+              pm.min_spare_servers: 3
+              pm.max_spare_servers: 10
               php_admin_value[memory_limit]: 64M
+              php_admin_value[date.timezone] = Europe/Berlin
+              php_value[open_basedir] = /var/www/vhosts/$pool:/dev/urandom
+
     
       roles:
         - tamay.httpd

@@ -1,0 +1,42 @@
+; {{ ansible_managed }}
+
+user = $pool
+group = $pool
+
+listen = /var/run/php-fpm/$pool-{{ php_version }}.sock
+
+listen.owner = $pool
+listen.group = $pool
+;listen.mode = 0660
+
+;listen.acl_users = apache
+;listen.acl_groups =
+listen.allowed_clients = 127.0.0.1
+
+pm = dynamic
+pm.max_children = 50
+pm.start_servers = 5
+pm.min_spare_servers = 5
+pm.max_spare_servers = 35
+
+;access.log = log/$pool.access.log
+;access.format = "%R - %u %t \"%m %r%Q%q\" %s %f %{mili}d %{kilo}M %C%%"
+
+slowlog = /var/opt/remi/{{ php_version }}/log/php-fpm/www-slow.log
+;request_slowlog_timeout = 0
+
+env[HOSTNAME] = $HOSTNAME
+env[PATH] = /usr/local/bin:/usr/bin:/bin
+env[TMP] = /var/www/vhosts/$pool/tmp
+env[TMPDIR] = /var/www/vhosts/$pool/tmp
+env[TEMP] = /var/www/vhosts/$pool/tmp
+
+
+php_admin_value[error_log] = /var/opt/remi/{{ php_version }}/log/php-fpm/www-error.log
+php_admin_flag[log_errors] = on
+;php_admin_value[memory_limit] = 128M
+
+
+php_value[session.save_handler] = files
+php_value[session.save_path]    = /var/www/vhosts/$pool/tmp
+php_value[soap.wsdl_cache_dir]  = /var/www/vhosts/$pool/tmp

@@ -39,20 +39,17 @@ php_fpm: yes
 
 # php-fpm pools to create
 php_fpm_pools: []
-# Example
+# Example:
 #php_fpm_pools:
 #  - name: test
-#    user: $pool
-#    group: $pool
-#    listen: /run/php-fpm/$pool-{{ php_version }}.sock
-#    listen_owner: $pool
-#    listen_group: apache
-#    pm: dynamic
-#    pm_max_children: 50
-#    pm_start_servers: 5
-#    pm_min_spare_servers: 5
-#    pm_max_spare_servers: 35
+#    user_home: /var/www/vhosts/test
+#    user_groups:
+#      - apache
 #    config:
+#      pm_max_children: 30
+#      pm_start_servers: 3
+#      pm_min_spare_servers: 3
+#      pm_max_spare_servers: 10
 #      php_admin_value[memory_limit]: 64M
 #      env[HOSTNAME]: $HOSTNAME
 #      env[PATH]: /usr/local/bin:/usr/bin:/bin

@@ -102,6 +102,24 @@
       replace: 'listen.group = apache'
   when: php_fpm
 
+- name: "Ensure pool user exists"
+  user:
+    state: present
+    name: "{{ item.name }}"
+    home: "{{ item.user_home | default('/var/www/vhosts/{{ item.name }}') }}"
+    groups: "{{ item.user_groups | default('apache') }}"
+    append: yes
+  loop: "{{ php_fpm_pools }}"
+  when: php_fpm
+
+- name: "Copy default pool config"
+  template:
+    src: pool.default.j2
+    dest: /etc/opt/remi/{{ php_version }}/php-fpm.d/pool.default
+    owner: root
+    group: root
+    mode: 0644
+
 - name: "Create additional php-fpm pools"
   template:
     src: pool.conf.j2
@@ -110,13 +128,5 @@
     group: root
     mode: 0644
   notify: "restart_php_fpm"
-  loop: "{{ php_fpm_pools }}"
-  when: php_fpm
-
-- name: "Ensure pool user exists"
-  user:
-    state: present
-    name: "{{ item.name }}"
-    create_home: no
   loop: "{{ php_fpm_pools }}"
   when: php_fpm
