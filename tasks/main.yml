@@ -21,12 +21,12 @@
     state: present
     name: "{{ php_packages }}"
 
-- name: "Create symlink from /opt/remi/{{ php_version }}/root/usr/bin/php to {{ php_symlink }}"
+- name: "Create symlink from /opt/remi/{{ php_version }}/root/usr/bin/php to {{ php_symlink_path }}"
   file:
     state: link
     src: /opt/remi/{{ php_version }}/root/usr/bin/php
     dest: "{{ php_symlink_path }}"
-  when: php_symlink
+  when: php_symlink | bool
 
 - name: "Configure php.ini"
   template:
@@ -63,4 +63,4 @@
       replace: 'opcache.fast_shutdown={{ php_opcache_config.fast_shutdown }}'
 
 - import_tasks: fpm.yml
-  when: php_fpm
+  when: php_fpm | bool
