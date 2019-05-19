@@ -16,11 +16,6 @@
     php_packages: "{{ php_packages }} + ['{{ php_version }}-php-{{ item }}']"
   loop: "{{ php_modules }}"
 
-- name: "Add php-fpm to list"
-  set_fact:
-    php_packages: "{{ php_packages }} + ['{{ php_version }}-php-fpm']"
-  when: php_fpm
-
 - name: "Install php packages"
   package:
     state: present
@@ -67,94 +62,5 @@
     - regexp: '.?opcache\.fast_shutdown=\d'
       replace: 'opcache.fast_shutdown={{ php_opcache_config.fast_shutdown }}'
 
-- name: "Configure tmpfiles.d for /run/php-fpm"
-  copy:
-    dest: /etc/tmpfiles.d/php-fpm.conf
-    content: 'd /run/php-fpm 755 root root'
-    owner: root
-    group: root
-    mode: 0644
-  when: php_fpm
-
-- name: "Create /run/php-fpm directory"
-  file:
-    path: /run/php-fpm
-    state: directory
-    owner: root
-    group: root
-    mode: 0755
-  when: php_fpm
-
-- name: "Change default pool to use unix socket"
-  replace:
-    path: /etc/opt/remi/{{ php_version }}/php-fpm.d/www.conf
-    regexp: "{{ item.regexp }}"
-    replace: "{{ item.replace }}"
-    owner: root
-    group: root
-    mode: 0644
-  with_items:
-    - regexp: 'listen = 127.0.0.1:9000'
-      replace: 'listen = /run/php-fpm/www-{{ php_version }}.sock'
-    - regexp: ';listen.owner = nobody'
-      replace: 'listen.owner = apache'
-    - regexp: ';listen.group = nobody'
-      replace: 'listen.group = apache'
-  when: php_fpm
-
-- name: "Ensure pool user exists"
-  user:
-    state: present
-    name: "{{ item.name }}"
-    home: "{{ item.user_home | default('/var/www/vhosts/' + item.name) }}"
-    append: yes
-  loop: "{{ php_fpm_pools }}"
-  when: php_fpm
-
-- name: "Set permissions for homedir of pool user"
-  file:
-    state: directory
-    path: /var/www/vhosts/{{ item.name }}
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: 0750
-  loop: "{{ php_fpm_pools }}"
-  when: php_fpm
-
-- name: "Create tmp directory for pool user"
-  file:
-    state: directory
-    path: /var/www/vhosts/{{ item.name }}/tmp
-    owner: "{{ item.name }}"
-    group: "{{ item.name }}"
-    mode: 0750
-  loop: "{{ php_fpm_pools }}"
-  when: php_fpm
-
-- name: "Add apache to pool user group"
-  user:
-    state: present
-    name: apache
-    groups:
-      - "{{ item.name }}"
-    append: yes
-  loop: "{{ php_fpm_pools }}"
-
-- name: "Copy default pool config"
-  template:
-    src: pool.default.j2
-    dest: /etc/opt/remi/{{ php_version }}/php-fpm.d/pool.default
-    owner: root
-    group: root
-    mode: 0644
-
-- name: "Create additional php-fpm pools"
-  template:
-    src: pool.conf.j2
-    dest: /etc/opt/remi/{{ php_version }}/php-fpm.d/{{ item.name }}.conf
-    owner: root
-    group: root
-    mode: 0644
-  notify: "restart_php_fpm"
-  loop: "{{ php_fpm_pools }}"
+- import_tasks: fpm.yml
   when: php_fpm

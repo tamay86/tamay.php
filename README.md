@@ -1,7 +1,7 @@
 Ansible Role: tamay.php
 =========
 
-This role installs PHP from [Remi Repo](https://rpms.remirepo.net/)
+This role installs PHP from [Remi Repo](https://rpms.remirepo.net/) for use with Apache Webserver.
 
 Requirements
 ------------
