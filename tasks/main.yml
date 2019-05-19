@@ -106,11 +106,39 @@
   user:
     state: present
     name: "{{ item.name }}"
-    home: "{{ item.user_home | default('/var/www/vhosts/{{ item.name }}') }}"
-    groups: "{{ item.user_groups | default('apache') }}"
+    home: "{{ item.user_home | default('/var/www/vhosts/' + item.name) }}"
     append: yes
   loop: "{{ php_fpm_pools }}"
   when: php_fpm
+
+- name: "Set permissions for homedir of pool user"
+  file:
+    state: directory
+    path: /var/www/vhosts/{{ item.name }}
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: 0750
+  loop: "{{ php_fpm_pools }}"
+  when: php_fpm
+
+- name: "Create tmp directory for pool user"
+  file:
+    state: directory
+    path: /var/www/vhosts/{{ item.name }}/tmp
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: 0750
+  loop: "{{ php_fpm_pools }}"
+  when: php_fpm
+
+- name: "Add apache to pool user group"
+  user:
+    state: present
+    name: apache
+    groups:
+      - "{{ item.name }}"
+    append: yes
+  loop: "{{ php_fpm_pools }}"
 
 - name: "Copy default pool config"
   template:

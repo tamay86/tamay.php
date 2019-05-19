@@ -6,7 +6,7 @@ This role installs PHP from [Remi Repo](https://rpms.remirepo.net/)
 Requirements
 ------------
 
-None.
+Apache Webserver.
 
 Role Variables
 --------------
@@ -67,8 +67,6 @@ Defaults to yes. Installs PHP-FPM, and sets the default pool to use UNIX instead
     #php_fpm_pools:
     #  - name: test
     #    user_home: /var/www/vhosts/test
-    #    user_groups:
-    #      - apache
     #    config:
     #      pm_max_children: 30
     #      pm_start_servers: 3
@@ -84,7 +82,7 @@ Defaults to yes. Installs PHP-FPM, and sets the default pool to use UNIX instead
 ```php_fpm_pools``` is a list of pools to be created. The only mandatory option is the name of the pool.
 
 **User creation**:  
-```user_home``` and ```user_groups``` can be defined. Defaults to ```/var/www/vhosts/NAME_OF_POOL``` and ```apache```
+```user_home``` can be defined. Defaults to ```/var/www/vhosts/NAME_OF_POOL```.
 
 **Pool configuration**:  
 The pool will be created, and the file ```/etc/opt/remi/php71/php-fpm.d/pool.default``` will be included. It contains some default values, that the pool can be used immediately. To overwrite or add some values, the have to be specified under ```config```.
@@ -131,8 +129,6 @@ Example Playbook
         php_fpm_pools:
           - name: test
             user_home: /var/www/vhosts/test
-            user_groups:
-              - apache
             config:
               pm: dynamic
               pm.max_children: 25
